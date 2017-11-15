@@ -1,0 +1,18 @@
+.mihdan-color-thief {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.mihdan-color-thief__item {
+  display: inline-block;
+  margin: 2px 2px;
+  width: 20px;
+  height: 20px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-indent: 100px;
+  border: 1px solid #ccc;
+}
+.mihdan-color-thief__item_dominant {
+  box-shadow: 0 0 1px 2px #f00;
+}
