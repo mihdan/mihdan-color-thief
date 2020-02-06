@@ -14,9 +14,9 @@ use ColorThief\ColorThief;
 
 final class Main {
 
-	const DEBUG = false;
+	const DEBUG    = false;
 	const TAXONOMY = 'colors';
-	const SLUG = 'mihdan-color-thief';
+	const SLUG     = 'mihdan-color-thief';
 
 	/**
 	 * Название эвента для определения цвета по крону.
@@ -72,41 +72,19 @@ final class Main {
 	}
 
 	/**
-	 * Mihdan_Color_Thief constructor.
+	 * Main constructor.
 	 */
 	private function __construct() {
-
-		// Дебаггер.
-		if ( true === self::DEBUG && file_exists( WP_PLUGIN_DIR . '/wp-php-console/vendor/autoload.php' ) ) {
-			require_once WP_PLUGIN_DIR . '/wp-php-console/vendor/autoload.php';
-
-			if ( ! class_exists( 'PC', false ) ) {
-				PhpConsole\Helper::register();
-			}
-		}
-
 		$this->setup();
 		$this->hooks();
-	}
-
-	/**
-	 * Выводит отладочное сообщение.
-	 *
-	 * @param mixed $str - что выодить.
-	 * @param null $label
-	 */
-	public static function debug( $str, $label = null ) {
-		if ( true === self::DEBUG ) {
-			PC::debug( $str, $label );
-		}
 	}
 
 	/**
 	 * Установка переменных для работы плагина.
 	 */
 	private function setup() {
-		self::$dir_path = trailingslashit( plugin_dir_path( __FILE__ ) );
-		self::$dir_uri = trailingslashit( plugin_dir_url( __FILE__ ) );
+		self::$dir_path = trailingslashit( plugin_dir_path( MIHDAN_COLOR_THIEF_FILE ) );
+		self::$dir_uri  = trailingslashit( plugin_dir_url( MIHDAN_COLOR_THIEF_FILE ) );
 	}
 
 	/**
@@ -115,9 +93,9 @@ final class Main {
 	private function hooks() {
 		add_action( 'init', array( $this, 'register_taxonomy' ) );
 		add_action( 'registered_taxonomy', array( $this, 'set_palette' ) );
-		add_action( 'add_attachment' , array( $this, 'add_schedule' ) );
-		add_action( self::SCHEDULE , array( $this, 'color_thief' ) );
-		add_action( 'admin_enqueue_scripts' , array( $this, 'enqueue_scripts' ) );
+		add_action( 'add_attachment', array( $this, 'add_schedule' ) );
+		add_action( self::SCHEDULE, array( $this, 'color_thief' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_filter( 'manage_media_columns', array( $this, 'add_palette_column' ) );
 		add_action( 'manage_media_custom_column', array( $this, 'set_palette_column_content' ), 10, 2 );
 	}
@@ -128,15 +106,18 @@ final class Main {
 	 * @param int $post_id идентификатор поста
 	 * @param array $args массив аргументов
 	 *
-	 * @return array|stdClass|WP_Error
+	 * @return array|\stdClass|\WP_Error
 	 */
 	public function get_dominant_color( $post_id, $args = array() ) {
 
-		$result = new stdClass();
+		$result = new \stdClass();
 
-		$args = wp_parse_args( $args, array(
-			'fields' => 'all'
-		) );
+		$args = wp_parse_args(
+			$args,
+			array(
+				'fields' => 'all',
+			)
+		);
 
 		$colors = wp_get_post_terms( $post_id, self::TAXONOMY, $args );
 
@@ -187,12 +168,16 @@ final class Main {
 
 	public function set_palette_column_content( $column, $post_id ) {
 		if ( 'mihdan_color_thief_column' === $column ) {
-			$colors = wp_get_post_terms( $post_id, self::TAXONOMY, array(
-				'fields' => 'slugs'
-			) );
+			$colors = wp_get_post_terms(
+				$post_id,
+				self::TAXONOMY,
+				array(
+					'fields' => 'slugs',
+				)
+			);
 
 			// Основной цвет.
-			$dominant_color = '';
+			$dominant_color    = '';
 			$dominant_color_id = get_post_meta( $post_id, self::META, true );
 			if ( $dominant_color_id ) {
 				$dominant_color = get_term( $dominant_color_id, self::TAXONOMY );
@@ -206,7 +191,7 @@ final class Main {
 				$output = '<ul class="mihdan-color-thief">';
 
 				foreach ( $colors as $color ) {
-					$class = ( $dominant_color == $color ) ? 'mihdan-color-thief__item_dominant' : '';
+					$class   = ( $dominant_color == $color ) ? 'mihdan-color-thief__item_dominant' : '';
 					$output .= '<li class="mihdan-color-thief__item ' . $class . '" style="background-color: ' . esc_attr( $color ) . '">' . esc_html( $color ) . '</li>';
 				}
 
@@ -229,10 +214,12 @@ final class Main {
 
 		if ( self::TAXONOMY === $taxonomy ) {
 
-			$colors = get_terms( array(
-				'taxonomy'   => self::TAXONOMY,
-				'hide_empty' => false,
-			) );
+			$colors = get_terms(
+				array(
+					'taxonomy'   => self::TAXONOMY,
+					'hide_empty' => false,
+				)
+			);
 
 			if ( $colors ) {
 				self::$palette = wp_list_pluck( $colors, 'description', 'term_id' );
@@ -256,23 +243,23 @@ final class Main {
 	 */
 	public function register_taxonomy() {
 		$labels = [
-			"name" => "Цвета",
-			"singular_name" => "Цвет",
+			'name'          => 'Цвета',
+			'singular_name' => 'Цвет',
 		];
 
 		$args = array(
-			"labels" => $labels,
-			"hierarchical" => true,
-			"label" => "Цвета",
-			"show_ui" => true,
-			"show_in_nav_menus" => true,
-			"show_in_quick_edit" => true,
-			"query_var" => true,
-			"rewrite" => [
-				'slug' => 'colors',
-				'with_front' => false
+			'labels'             => $labels,
+			'hierarchical'       => true,
+			'label'              => 'Цвета',
+			'show_ui'            => true,
+			'show_in_nav_menus'  => true,
+			'show_in_quick_edit' => true,
+			'query_var'          => true,
+			'rewrite'            => [
+				'slug'       => 'colors',
+				'with_front' => false,
 			],
-			'show_admin_column' => false,
+			'show_admin_column'  => false,
 		);
 		register_taxonomy( self::TAXONOMY, [ 'attachment', 'product_', 'post' ], $args );
 	}
@@ -311,12 +298,15 @@ final class Main {
 	 */
 	private function rgb_to_xyz( $rgb ) {
 		list( $r, $g, $b ) = $rgb;
+
 		$r = $r <= 0.04045 ? $r / 12.92 : pow( ( $r + 0.055 ) / 1.055, 2.4 );
 		$g = $g <= 0.04045 ? $g / 12.92 : pow( ( $g + 0.055 ) / 1.055, 2.4 );
 		$b = $b <= 0.04045 ? $b / 12.92 : pow( ( $b + 0.055 ) / 1.055, 2.4 );
+
 		$r *= 100;
 		$g *= 100;
 		$b *= 100;
+
 		$x = $r * 0.412453 + $g * 0.357580 + $b * 0.180423;
 		$y = $r * 0.212671 + $g * 0.715160 + $b * 0.072169;
 		$z = $r * 0.019334 + $g * 0.119193 + $b * 0.950227;
@@ -331,14 +321,17 @@ final class Main {
 	 *
 	 * @return array
 	 */
-	private function xyz_to_lab( $xyz ){
+	private function xyz_to_lab( $xyz ) {
 		list ( $x, $y, $z ) = $xyz;
+
 		$x /= 95.047;
 		$y /= 100;
 		$z /= 108.883;
+
 		$x = $x > 0.008856 ? pow( $x, 1 / 3 ) : $x * 7.787 + 16 / 116;
 		$y = $y > 0.008856 ? pow( $y, 1 / 3 ) : $y * 7.787 + 16 / 116;
 		$z = $z > 0.008856 ? pow( $z, 1 / 3 ) : $z * 7.787 + 16 / 116;
+
 		$l = $y * 116 - 16;
 		$a = ( $x - $y ) * 500;
 		$b = ( $y - $z ) * 200;
@@ -361,46 +354,46 @@ final class Main {
 		list( $l1, $a1, $b1 ) = $c1;
 		list( $l2, $a2, $b2 ) = $c2;
 
-		$avg_lp     = ($l1 + $l2) / 2;
-		$c1 = sqrt( pow( $a1, 2 ) + pow( $b1, 2 ) );
-		$c2 = sqrt( pow( $a2, 2 ) + pow( $b2, 2 ) );
-		$avg_c = ( $c1 + $c2 ) / 2;
-		$g = ( 1 - sqrt( pow( $avg_c, 7 ) / ( pow( $avg_c, 7 ) + pow( 25, 7 ) ) ) ) / 2;
-		$a1p = $a1 * ( 1 + $g );
-		$a2p = $a2 * ( 1 + $g );
-		$c1p = sqrt( pow( $a1p, 2 ) + pow( $b1, 2 ) );
-		$c2p = sqrt( pow( $a2p, 2 ) + pow( $b2, 2 ) );
+		$avg_lp = ( $l1 + $l2 ) / 2;
+		$c1     = sqrt( pow( $a1, 2 ) + pow( $b1, 2 ) );
+		$c2     = sqrt( pow( $a2, 2 ) + pow( $b2, 2 ) );
+		$avg_c  = ( $c1 + $c2 ) / 2;
+		$g      = ( 1 - sqrt( pow( $avg_c, 7 ) / ( pow( $avg_c, 7 ) + pow( 25, 7 ) ) ) ) / 2;
+		$a1p    = $a1 * ( 1 + $g );
+		$a2p    = $a2 * ( 1 + $g );
+		$c1p    = sqrt( pow( $a1p, 2 ) + pow( $b1, 2 ) );
+		$c2p    = sqrt( pow( $a2p, 2 ) + pow( $b2, 2 ) );
 		$avg_cp = ( $c1p + $c2p ) / 2;
-		$h1p = rad2deg( atan2( $b1, $a1p ) );
-		if ($h1p < 0) {
-			$h1p    += 360;
+		$h1p    = rad2deg( atan2( $b1, $a1p ) );
+		if ( $h1p < 0 ) {
+			$h1p += 360;
 		}
-		$h2p        = rad2deg(atan2($b2, $a2p));
-		if ($h2p < 0) {
-			$h2p    += 360;
+		$h2p = rad2deg( atan2( $b2, $a2p ) );
+		if ( $h2p < 0 ) {
+			$h2p += 360;
 		}
-		$avg_hp     = abs($h1p - $h2p) > 180 ? ($h1p + $h2p + 360) / 2 : ($h1p + $h2p) / 2;
-		$t          = 1 - 0.17 * cos(deg2rad($avg_hp - 30)) + 0.24 * cos(deg2rad(2 * $avg_hp)) + 0.32 * cos(deg2rad(3 * $avg_hp + 6)) - 0.2 * cos(deg2rad(4 * $avg_hp - 63));
-		$delta_hp   = $h2p - $h1p;
-		if (abs($delta_hp) > 180) {
-			if ($h2p <= $h1p) {
+		$avg_hp   = abs( $h1p - $h2p ) > 180 ? ( $h1p + $h2p + 360 ) / 2 : ( $h1p + $h2p ) / 2;
+		$t        = 1 - 0.17 * cos( deg2rad( $avg_hp - 30 ) ) + 0.24 * cos( deg2rad( 2 * $avg_hp ) ) + 0.32 * cos( deg2rad( 3 * $avg_hp + 6 ) ) - 0.2 * cos( deg2rad( 4 * $avg_hp - 63 ) );
+		$delta_hp = $h2p - $h1p;
+		if ( abs( $delta_hp ) > 180 ) {
+			if ( $h2p <= $h1p ) {
 				$delta_hp += 360;
-			}
-			else {
+			} else {
 				$delta_hp -= 360;
 			}
 		}
-		$delta_lp   = $l2 - $l1;
-		$delta_cp   = $c2p - $c1p;
-		$delta_hp   = 2 * sqrt($c1p * $c2p) * sin(deg2rad($delta_hp) / 2);
-		$s_l        = 1 + ((0.015 * pow($avg_lp - 50, 2)) / sqrt(20 + pow($avg_lp - 50, 2)));
-		$s_c        = 1 + 0.045 * $avg_cp;
-		$s_h        = 1 + 0.015 * $avg_cp * $t;
-		$delta_ro   = 30 * exp(-(pow(($avg_hp - 275) / 25, 2)));
-		$r_c        = 2 * sqrt(pow($avg_cp, 7) / (pow($avg_cp, 7) + pow(25, 7)));
-		$r_t        = -$r_c * sin(2 * deg2rad($delta_ro));
-		$kl = $kc = $kh = 1;
-		$delta_e    = sqrt(pow($delta_lp / ($s_l * $kl), 2) + pow($delta_cp / ($s_c * $kc), 2) + pow($delta_hp / ($s_h * $kh), 2) + $r_t * ($delta_cp / ($s_c * $kc)) * ($delta_hp / ($s_h * $kh)));
+		$delta_lp = $l2 - $l1;
+		$delta_cp = $c2p - $c1p;
+		$delta_hp = 2 * sqrt( $c1p * $c2p ) * sin( deg2rad( $delta_hp ) / 2 );
+		$s_l      = 1 + ( ( 0.015 * pow( $avg_lp - 50, 2 ) ) / sqrt( 20 + pow( $avg_lp - 50, 2 ) ) );
+		$s_c      = 1 + 0.045 * $avg_cp;
+		$s_h      = 1 + 0.015 * $avg_cp * $t;
+		$delta_ro = 30 * exp( - ( pow( ( $avg_hp - 275 ) / 25, 2 ) ) );
+		$r_c      = 2 * sqrt( pow( $avg_cp, 7 ) / ( pow( $avg_cp, 7 ) + pow( 25, 7 ) ) );
+		$r_t      = - $r_c * sin( 2 * deg2rad( $delta_ro ) );
+		$kl       = $kc = $kh = 1;
+		$delta_e  = sqrt( pow( $delta_lp / ( $s_l * $kl ), 2 ) + pow( $delta_cp / ( $s_c * $kc ), 2 ) + pow( $delta_hp / ( $s_h * $kh ), 2 ) + $r_t * ( $delta_cp / ( $s_c * $kc ) ) * ( $delta_hp / ( $s_h * $kh ) ) );
+
 		return $delta_e;
 	}
 
@@ -421,28 +414,24 @@ final class Main {
 
 		if ( wp_attachment_is_image( $attachment_id ) ) {
 
-			$colors = array();
-			$file = get_attached_file( $attachment_id );
+			$colors  = array();
+			$file    = get_attached_file( $attachment_id );
 			$palette = ColorThief::getPalette( $file, 5, 5 );
-			//$dominant  = ColorThief::getColor( $file );
-			//self::debug($palette,'all');
-			//self::debug($dominant,'dominant');
 
 			if ( $palette ) {
 				foreach ( $palette as $rgb ) {
 					$rounded = $this->get_closest_color( $rgb );
 
-					if ( false !== ( $key = array_search( $rounded, self::$palette ) ) ) {
+					$key = array_search( $rounded, self::$palette );
+
+					if ( false !== $key ) {
 						$colors[] = $key;
 					}
-
 				}
 				$dominant_color = $colors[0];
+
 				// Выбрать только уникальные цвета.
 				$colors = array_unique( $colors );
-
-				// Урезать до пяти.
-				//$colors = array_slice( $colors, 0, 5 );
 
 				// Прикрепить полученные цвета к фото.
 				if ( $colors ) {
@@ -486,40 +475,14 @@ final class Main {
 
 		$distinction = array();
 
-		//arsort( self::$palette );
-
-		foreach ( self::$palette as $term_id => $baseColor ) {
-
-			//list( $baseRedColor, $baseGreenColor, $baseBlueColor ) = $this->hex_to_rgb( $baseColor );
-
-			// https://en.wikipedia.org/wiki/Color_difference
-			// Расстояние считаем по формуле
-			// d2 = (r1 - r2)^2 + (g1 - g2)^2 + (b1 - b2)^2;
-			/*$sqrt = sqrt(
-				pow( ( $color[0] - $baseRedColor ), 2 ) +
-				pow( ( $color[1] - $baseGreenColor ), 2 ) +
-				pow( ( $color[2] - $baseBlueColor ), 2 )
-			);*/
-
-			/*$sqrt = sqrt(
-				pow( 30 * ( $color[0] - $baseRedColor ), 2 ) +
-				pow( 59 * ( $color[1] - $baseGreenColor ), 2 ) +
-				pow( 11 * ( $color[2] - $baseBlueColor ), 2 )
-			);*/
-
-			/*$sqrt = (
-				abs ( $color[0] - $baseRedColor ) +
-				abs ( $color[1] - $baseGreenColor ) +
-				abs ( $color[2] - $baseBlueColor )
-			);*/
-
-			$sqrt = $this->get_distance_between_colors( $color, $this->hex_to_rgb( $baseColor ) );
+		foreach ( self::$palette as $term_id => $base_color ) {
+			$sqrt = $this->get_distance_between_colors( $color, $this->hex_to_rgb( $base_color ) );
 
 			$distinction[ "$sqrt" ] = $term_id;
-		}//PC::debug($distinction);
+		}
 
 		$min_value = min( array_keys( $distinction ) );
-		$index = $distinction[ $min_value ];
+		$index     = $distinction[ $min_value ];
 
 		return self::$palette[ $index ];
 	}
