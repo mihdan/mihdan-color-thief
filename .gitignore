@@ -10,6 +10,8 @@ wp-content/uploads/
 wp-content/wp-cache-config.php
 wp-content/plugins/hello.php
 
+vendor/
+
 /.htaccess
 /license.txt
 /readme.html
